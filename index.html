@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="en">
+    <meta name="viewport" content="width_device_width, initial_state=1.0">
+    <title>AI Supply Chain Search</title>
+</head>
+
+<body>
+     <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fb;
+            color: #1f2937;
+        }
+
+        .header {
+            background: #111827;
+            color: white;
+            padding: 24px 8%;
+        }
+
+        .header h1 {
+            font-size: 30px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #d1d5db;
+            font-size: 15px;
+        }
+
+        .container {
+            width: 84%;
+            max-width: 1200px;
+            margin: 40px auto;
+        }
+
+        .search-section {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+        }
+
+        .search-section h2 {
+            margin-bottom: 8px;
+        }
+
+        .search-section p {
+            color: #6b7280;
+            margin-bottom: 20px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 15px 18px;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .search-box input:focus {
+            border-color: #4f46e5;
+        }
+
+        .search-box button {
+            padding: 15px 28px;
+            border: none;
+            border-radius: 10px;
+            background: #4f46e5;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .search-box button:hover {
+            background: #4338ca;
+        }
+
+        .examples {
+            margin-top: 20px;
+        }
+
+        .examples span {
+            display: inline-block;
+            background: #eef2ff;
+            color: #3730a3;
+            padding: 8px 12px;
+            border-radius: 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .examples span:hover {
+            background: #e0e7ff;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .results-header p {
+            color: #6b7280;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 22px;
+            border-radius: 14px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.07);
+        }
+
+        .card h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #111827;
+        }
+
+        .category {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 15px;
+        }
+
+        .info {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+
+        .risk {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .low-risk {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .high-risk {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .medium-risk {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .similarity {
+            margin-top: 12px;
+            color: #4f46e5;
+            font-size: 14px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            color: #6b7280;
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+            margin-top: 20px;
+        }
+
+        .no-results {
+            background: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 12px;
+            color: #6b7280;
+        }
+
+        @media (max-width: 700px) {
+
+            .search-box {
+                flex-direction: column;
+            }
+
+            .container {
+                width: 92%;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <div class="header">
+
+        <h1>AI Supply Chain Search</h1>
+
+        <p>
+            Search products using natural language and explore
+            late-delivery risk using AI.
+        </p>
+
+    </div>
+
+
+    <div class="container">
+
+
+        <div class="search-section">
+
+            <h2>Ask your supply-chain data</h2>
+
+            <p>
+                Describe what you are looking for in normal language.
+            </p>
+
+
+            <div class="search-box">
+
+                <input
+                    type="text"
+                    id="searchInput"
+                    placeholder="Example: sporting goods with low delivery risk"
+                    onkeydown="handleEnter(event)"
+                >
+
+                <button onclick="searchProducts()">
+                    Search
+                </button>
+
+            </div>
+
+
+            <div class="examples">
+
+                <span onclick="useExample(this)">
+                    Products with low delivery risk
+                </span>
+
+                <span onclick="useExample(this)">
+                    Products likely to be late
+                </span>
+
+                <span onclick="useExample(this)">
+                    Sporting goods with low delivery risk
+                </span>
+
+                <span onclick="useExample(this)">
+                    Products under 150 dollars
+                </span>
+
+                <span onclick="useExample(this)">
+                    Products likely to arrive on time
+                </span>
+
+            </div>
+
+
+            <div id="error" class="error"></div>
+
+        </div>
+
+
+        <div class="loading" id="loading">
+
+            Searching using AI...
+
+        </div>
+
+
+        <div id="resultsSection" style="display:none;">
+
+            <div class="results-header">
+
+                <div>
+
+                    <h2>Search Results</h2>
+
+                    <p id="queryText"></p>
+
+                </div>
+
+                <p id="resultCount"></p>
+
+            </div>
+
+
+            <div
+                class="results-grid"
+                id="resultsGrid"
+            ></div>
+
+        </div>
+
+
+    </div>
+
+
+<script>
+
+
+function handleEnter(event) {
+
+    if (event.key === "Enter") {
+
+        searchProducts();
+
+    }
+
+}
+
+
+function useExample(element) {
+
+    document.getElementById("searchInput").value =
+        element.innerText;
+
+    searchProducts();
+
+}
+
+
+async function searchProducts() {
+
+    const query =
+        document.getElementById("searchInput").value.trim();
+
+    const error =
+        document.getElementById("error");
+
+    const loading =
+        document.getElementById("loading");
+
+    const resultsSection =
+        document.getElementById("resultsSection");
+
+    const resultsGrid =
+        document.getElementById("resultsGrid");
+
+
+    error.style.display = "none";
+
+
+    if (!query) {
+
+        error.innerText =
+            "Please enter a search query.";
+
+        error.style.display = "block";
+
+        return;
+
+    }
+
+
+    loading.style.display = "block";
+
+    resultsSection.style.display = "none";
+
+    resultsGrid.innerHTML = "";
+
+
+    try {
+
+        const response = await fetch(
+            `/api/search?q=${encodeURIComponent(query)}`
+        );
+
+
+        const data = await response.json();
+
+
+        loading.style.display = "none";
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.error || "Search failed."
+            );
+
+        }
+
+
+        document.getElementById("queryText").innerText =
+            `Query: "${data.query}"`;
+
+
+        document.getElementById("resultCount").innerText =
+            `${data.results.length} results`;
+
+
+        if (data.results.length === 0) {
+
+            resultsGrid.innerHTML = `
+                <div class="no-results">
+                    No matching products were found.
+                </div>
+            `;
+
+            resultsSection.style.display = "block";
+
+            return;
+        }
+
+
+        data.results.forEach(product => {
+
+            let riskClass = "medium-risk";
+
+            let riskLabel = "Medium Delivery Risk";
+
+
+            if (product.delivery_risk < 40) {
+
+                riskClass = "low-risk";
+
+                riskLabel = "Low Delivery Risk";
+
+            }
+            else if (product.delivery_risk >= 60) {
+
+                riskClass = "high-risk";
+
+                riskLabel = "High Delivery Risk";
+
+            }
+
+
+            const card = document.createElement("div");
+
+            card.className = "card";
+
+
+            card.innerHTML = `
+
+                <h3>
+                    ${product.product_name}
+                </h3>
+
+                <div class="category">
+                    ${product.department}
+                    •
+                    ${product.category}
+                </div>
+
+                <div class="info">
+
+                    <span>Price</span>
+
+                    <strong>
+                        $${product.price.toFixed(2)}
+                    </strong>
+
+                </div>
+
+
+                <div class="info">
+
+                    <span>Sales</span>
+
+                    <strong>
+                        $${product.sales.toFixed(2)}
+                    </strong>
+
+                </div>
+
+
+                <div class="info">
+
+                    <span>Order Quantity</span>
+
+                    <strong>
+                        ${product.quantity}
+                    </strong>
+
+                </div>
+
+
+                <div class="risk ${riskClass}">
+
+                    ${riskLabel}
+
+                    <br>
+
+                    ${product.delivery_risk.toFixed(2)}%
+
+                </div>
+
+
+                <div class="similarity">
+
+                    AI Relevance:
+                    ${product.similarity.toFixed(2)}%
+
+                </div>
+
+            `;
+
+
+            resultsGrid.appendChild(card);
+
+        });
+
+
+        resultsSection.style.display = "block";
+
+
+    }
+    catch (err) {
+
+        loading.style.display = "none";
+
+        error.innerText =
+            err.message || "Something went wrong.";
+
+        error.style.display = "block";
+
+    }
+
+}
+
+
+</script>
+
+</body>

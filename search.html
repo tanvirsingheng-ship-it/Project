@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="charset" content="device=device-width, initial-scale=0.1">
+    <title>AI Product Search</title>
+    <style>
+        *{
+            box-sizing: 15px;
+        }
+
+        body{
+            padding: 15px;
+            background: #f4f5f7;
+            text-align: center;
+            margin: 6px;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+            color: #0a265f;
+        }
+
+        nav{
+            padding: 10px 25px;
+            background: #111827;
+            display: flex;
+            justify-content: space-between;
+            text-align: center;
+        }
+
+        .logo{
+            font: sans-serif;
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .container{
+            max-width: 1100ps;
+            padding: 20px;
+            margin: 50px auto;
+        }
+
+        h1{
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .subtitle{
+            text-align: center;
+            color: #666fd4;
+            margin-bottom: 30px;
+        }
+
+        .search-box{
+            display: flex;
+            size: 14px;
+            margin-bottom: 30px;
+        }
+
+        #searchInput{
+            display:flex;
+            padding: 15px;
+            border: 1px solid;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+
+         #searchButton {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 8px;
+            background: #2563eb;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #searchButton:hover {
+            background: #1d4ed8;
+        }
+
+        #results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+        }
+
+        .card h3 {
+            margin-top: 0;
+        }
+
+        .risk {
+            font-weight: bold;
+        }
+
+        .loading {
+            text-align: center;
+            color: #666;
+        }
+
+        .error {
+            color: #b91c1c;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="logo">
+            Supply AI Search
+        </div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/chatbot">AI Assistant</a>
+            <a href="/search">AI Search</a>
+            <a href="/insights">Insights</a>
+            <a href="/prediction">Prediction</a>
+            <a href="/automation">AI Automation</a>
+        </div>
+    </nav>
+    <div class="container">
+
+    <h1>AI Product Search</h1>
+
+    <p class="subtitle">
+        Search DataCo products using natural language
+    </p>
+
+    <div class="search-box">
+
+        <input
+            type="text"
+            id="searchInput"
+            placeholder="Try: products under 150 dollars"
+        >
+
+        <button
+            id="searchButton"
+            type="button"
+        >
+            🔍 AI Search
+        </button>
+
+    </div>
+
+    <div id="results"></div>
+
+</div>
+    <script>
+
+async function performSearch() {
+
+    const input = document.getElementById("searchInput");
+    const results = document.getElementById("results");
+
+    const query = input.value.trim();
+
+    if (!query) {
+        results.innerHTML =
+            '<p class="error">Please enter a search query.</p>';
+        return;
+    }
+
+    results.innerHTML =
+        '<p class="loading">AI is searching...</p>';
+
+    try {
+
+        const response = await fetch("/api/search", {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                query: query
+            })
+
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || "Search failed");
+        }
+
+        displayResults(data.results);
+
+    } catch (error) {
+
+        console.error(error);
+
+        results.innerHTML =
+            `<p class="error">${error.message}</p>`;
+
+    }
+}
+
+
+function displayResults(results) {
+
+    const container = document.getElementById("results");
+
+    if (!results || results.length === 0) {
+
+        container.innerHTML =
+            '<p class="error">No products found.</p>';
+
+        return;
+    }
+
+    container.innerHTML = results.map(product => {
+
+        return `
+            <div class="card">
+
+                <h3>${product.product_name || "Unknown Product"}</h3>
+
+                <p>
+                    <strong>Department:</strong>
+                    ${product.department || "N/A"}
+                </p>
+
+                <p>
+                    <strong>Category:</strong>
+                    ${product.category || "N/A"}
+                </p>
+
+                <p>
+                    <strong>Price:</strong>
+                    ₹${Number(product.price || 0).toFixed(2)}
+                </p>
+
+                <p>
+                    <strong>Quantity:</strong>
+                    ${product.quantity || 0}
+                </p>
+
+                <p>
+                    <strong>Sales:</strong>
+                    ${Number(product.sales || 0).toFixed(2)}
+                </p>
+
+                <p>
+                    <strong>AI Similarity:</strong>
+                    ${Number(product.similarity || 0).toFixed(3)}
+                </p>
+
+                <p class="risk">
+                    Late Delivery Risk:
+                    ${product.late_delivery_risk || "N/A"}
+                </p>
+
+            </div>
+        `;
+
+    }).join("");
+}
+
+
+document
+    .getElementById("searchButton")
+    .addEventListener("click", performSearch);
+
+
+document
+    .getElementById("searchInput")
+    .addEventListener("keydown", function(event) {
+
+        if (event.key === "Enter") {
+            performSearch();
+        }
+
+    });
+
+</script>
+
+</body>
